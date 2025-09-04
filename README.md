@@ -12,14 +12,15 @@ Projeto mínimo e **100% funcional** para o 1º Checkpoint – 2º Semestre: **D
 - Deploy manual, variação entre ambientes
 
 **Futura (com Docker Compose):**
-```mermaid
-flowchart LR
-  subgraph Host
-    subgraph Docker_Network
-      A[Flask App (Gunicorn)\nporta 8000] -- SQLAlchemy --> B[(Postgres 16-alpine)]
-    end
-  end
-```
+* **Dois containers**:
+
+  1. **App**: container com Flask + Gunicorn, exposto na porta **8000**, rodando como usuário não-root.
+  2. **DB**: container Postgres 16-alpine, com volume nomeado para persistência de dados.
+* **Comunicação interna**: os containers se conectam por meio da **rede interna criada pelo Docker Compose**, onde o app acessa o banco pelo hostname `db`.
+* **Persistência**: o Postgres utiliza o volume `db-data` para manter os dados mesmo após reinicializações.
+* **Configuração**: variáveis de ambiente definidas no arquivo `.env` controlam credenciais e parâmetros de execução.
+* **Confiabilidade**: ambos os serviços possuem políticas de `restart: unless-stopped` e **healthchecks** (`pg_isready` para o DB e `GET /health` para o app).
+* **Exposição externa**: apenas a aplicação Flask é acessível pela máquina host em `http://localhost:8000`.
 
 ## Como rodar
 
