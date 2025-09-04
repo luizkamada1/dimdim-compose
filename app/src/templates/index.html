@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>DimDim - CRUD Clientes</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 2rem; }
+    h1 { margin-bottom: 0.5rem; }
+    .card { border: 1px solid #ddd; padding: 1rem; border-radius: 10px; margin-bottom: 1rem; }
+    label { display:block; margin-top: .5rem; }
+    input { padding: .5rem; width: 260px; }
+    button { padding: .5rem 1rem; margin-top: .75rem; cursor:pointer; }
+    table { border-collapse: collapse; margin-top: 1rem; width: 100%; max-width: 720px; }
+    th, td { border: 1px solid #ccc; padding: .5rem; text-align: left; }
+    .muted { color: #777; font-size: .9rem; }
+  </style>
+</head>
+<body>
+  <h1>DimDim - CRUD Clientes</h1>
+  <p class="muted">API Flask + Postgres via Docker Compose. Health: <span id="health">?</span></p>
+
+  <div class="card">
+    <h3>Criar cliente</h3>
+    <label>Nome: <input id="name" /></label>
+    <label>Email: <input id="email" /></label>
+    <button onclick="createCustomer()">Salvar</button>
+  </div>
+
+  <div class="card">
+    <h3>Clientes</h3>
+    <button onclick="load()">Recarregar</button>
+    <table>
+      <thead><tr><th>ID</th><th>Nome</th><th>Email</th><th>Ações</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+
+  <script>
+    async function ping() {
+      try {
+        const r = await fetch('/health');
+        document.getElementById('health').textContent = r.ok ? 'ok' : 'erro';
+      } catch {
+        document.getElementById('health').textContent = 'offline';
+      }
+    }
+
+    async function load() {
+      const res = await fetch('/api/customers');
+      const data = await res.json();
+      const rows = document.getElementById('rows');
+      rows.innerHTML = '';
+      data.forEach(c => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${c.id}</td>
+          <td><input value="${c.name}" id="name-${c.id}"/></td>
+          <td><input value="${c.email}" id="email-${c.id}"/></td>
+          <td>
+            <button onclick="updateCustomer(${c.id})">Atualizar</button>
+            <button onclick="deleteCustomer(${c.id})">Excluir</button>
+          </td>`;
+        rows.appendChild(tr);
+      });
+    }
+
+    async function createCustomer() {
+      const res = await fetch('/api/customers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: document.getElementById('name').value, email: document.getElementById('email').value })
+      });
+      if (res.ok) { load(); }
+      else { alert('Erro ao criar'); }
+    }
+
+    async function updateCustomer(id) {
+      const res = await fetch(`/api/customers/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: document.getElementById(`name-${id}`).value,
+          email: document.getElementById(`email-${id}`).value
+        })
+      });
+      if (res.ok) { load(); }
+      else { alert('Erro ao atualizar'); }
+    }
+
+    async function deleteCustomer(id) {
+      const ok = confirm('Confirma excluir?');
+      if (!ok) return;
+      const res = await fetch(`/api/customers/${id}`, { method: 'DELETE' });
+      if (res.ok) { load(); }
+      else { alert('Erro ao excluir'); }
+    }
+
+    ping(); load();
+  </script>
+</body>
+</html>
