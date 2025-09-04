@@ -25,10 +25,7 @@ Projeto mínimo e **100% funcional** para o 1º Checkpoint – 2º Semestre: **D
 ## Como rodar
 
 1. **Pré-requisitos**: Docker + Docker Compose plugin
-2. Copie o arquivo `.env.example` para `.env` e ajuste, se necessário:
-   ```bash
-   cp .env.example .env
-   ```
+2. Ajuste o arquivo `.env`, se necessário:
 3. Build e subida dos serviços:
    ```bash
    docker compose up -d --build
